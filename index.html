@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evaluaciones Técnicas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar" id="topbar">
+  <h1>Evaluaciones técnicas</h1>
+  <button class="btn ghost" id="btn-admin" type="button">Acceso Docente</button>
+</header>
+
+<main>
+<!-- ===================== VISTA ESTUDIANTE ===================== -->
+<section id="view-student">
+  <div class="card" id="stepA">
+    <h2>Presentar evaluación</h2>
+    <form id="form-student" autocomplete="off">
+      <div class="grid2">
+        <label>Curso
+          <select id="s-curso"></select>
+        </label>
+        <label>Evaluación activa
+          <select id="s-eval"></select>
+        </label>
+      </div>
+      <label>…o digita el código de evaluación
+        <input type="text" id="s-codigo" placeholder="EVAL-1234">
+      </label>
+      <div class="grid2">
+        <label>Nombre completo
+          <input type="text" id="s-nombre" required>
+        </label>
+        <label>Número de documento
+          <input type="text" id="s-doc" required inputmode="numeric">
+        </label>
+      </div>
+      <button class="btn primary" type="submit">Verificar y Continuar</button>
+    </form>
+    <div id="s-msg" class="msg" hidden></div>
+  </div>
+
+  <div class="card" id="stepInfo" hidden></div>
+
+  <div id="exam" hidden>
+    <div class="exam-bar">
+      <div><strong id="exam-title"></strong><span id="exam-progress" class="muted"></span></div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+    <div id="questions"></div>
+    <div class="exam-actions"><button class="btn primary" id="btn-submit" type="button">Enviar evaluación</button></div>
+  </div>
+
+  <div id="report" hidden></div>
+</section>
+
+<!-- ===================== VISTA ADMINISTRADOR ===================== -->
+<section id="view-admin" hidden>
+  <nav class="tabs">
+    <button class="tab active" data-tab="t1" type="button">Cargar nueva evaluación</button>
+    <button class="tab" data-tab="t2" type="button">Gestión de evaluaciones</button>
+    <button class="tab" data-tab="t3" type="button">Reporte de calificaciones</button>
+  </nav>
+
+  <div class="card tabpane" id="t1">
+    <h2>Cargar nueva evaluación</h2>
+    <form id="form-upload">
+      <div class="grid2">
+        <label>Código de evaluación
+          <input type="text" id="a-codigo" required>
+        </label>
+        <label>Curso / Grupo
+          <select id="a-curso"></select>
+        </label>
+      </div>
+      <label id="a-otro-wrap" hidden>Nombre del curso
+        <input type="text" id="a-otro">
+      </label>
+      <label class="switch-row">
+        <span class="switch"><input type="checkbox" id="a-activa" checked><span class="slider"></span></span>
+        Activar evaluación inmediatamente
+      </label>
+      <label>Archivo de preguntas (.json)
+        <input type="file" id="a-file" accept=".json" required>
+      </label>
+      <button class="btn primary" type="submit">Guardar evaluación</button>
+    </form>
+    <div id="a-msg" class="msg" hidden></div>
+  </div>
+
+  <div class="card tabpane" id="t2" hidden>
+    <h2>Gestión de evaluaciones</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Código</th><th>Título</th><th>Curso</th><th>N° preguntas</th><th>Estado</th><th>Activa</th><th></th></tr></thead>
+        <tbody id="tb-evals"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card tabpane" id="t3" hidden>
+    <h2>Reporte de calificaciones</h2>
+    <div class="filters">
+      <label>Curso <select id="r-curso"></select></label>
+      <label>Código <select id="r-codigo"></select></label>
+      <button class="btn" id="btn-refresh" type="button">Actualizar</button>
+      <button class="btn primary" id="btn-csv" type="button">Exportar a CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Curso</th><th>Código</th><th>Documento</th><th>Nombre</th><th>Intentos</th><th>Última nota</th><th>Mejor nota</th><th>Alertas</th></tr></thead>
+        <tbody id="tb-results"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer" id="site-footer">
+  <p>© 2026 Santiago Yosa. Todos los derechos reservados.</p>
+  <p>Evaluaciones®.</p>
+  <p><button class="link-btn" type="button" data-privacy>Política de tratamiento de datos personales</button></p>
+</footer>
+
+<!-- ===================== MODALES ===================== -->
+<div class="modal" id="modal-login" hidden>
+  <form class="modal-box" id="form-login-docente">
+    <h3>Acceso docente</h3>
+    <label>Correo
+      <input type="email" id="docente-email" placeholder="Correo del docente" autocomplete="username" required>
+    </label>
+    <label>Contraseña
+      <input type="password" id="docente-password" placeholder="Contraseña" autocomplete="current-password" required>
+    </label>
+    <div class="msg err" id="login-msg" hidden></div>
+    <div class="row-end">
+      <button class="btn ghost" type="button" id="login-cancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="login-submit">Iniciar sesión</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal" id="modal-generic" hidden>
+  <div class="modal-box wide">
+    <h3 id="mg-title"></h3>
+    <div id="mg-body"></div>
+    <div class="row-end"><button class="btn" id="mg-close" type="button">Cerrar</button></div>
+  </div>
+</div>
+
+<div class="modal blocking" id="modal-fs" hidden>
+  <div class="modal-box">
+    <h3>Pantalla completa requerida</h3>
+    <p>Saliste de la pantalla completa. Esta salida quedó registrada. Vuelve a pantalla completa para continuar con la evaluación.</p>
+    <div class="row-end"><button class="btn primary" id="btn-refs" type="button">Volver a pantalla completa</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
