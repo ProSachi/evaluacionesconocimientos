@@ -288,7 +288,7 @@ async function loadReport() {
     <tr>
       <td>${esc(r.curso)}</td><td>${esc(r.evaluacion_codigo)}</td><td>${esc(r.estudiante_documento)}</td><td>${esc(r.estudiante_nombre)}</td>
       <td>${r.intentos_realizados}</td><td>${fmtNota(r.ultimo_puntaje)}</td><td><strong>${fmtNota(r.mejor_puntaje)}</strong></td>
-      <td>${r.infracciones_count || 0} <button class="btn sm" data-i="${i}" type="button">Ver detalle</button></td>
+      <td><button class="btn sm alert-btn ${(r.infracciones_count || 0) > 0 ? 'has-alerts' : ''}" data-i="${i}" type="button" aria-label="Ver detalle de ${r.infracciones_count || 0} alertas" title="Ver detalle de alertas">${r.infracciones_count || 0}</button></td>
       <td><button class="btn danger sm" data-delres="${i}" type="button">Eliminar</button></td>
     </tr>`).join('');
 }
@@ -444,7 +444,7 @@ window.addEventListener('blur', () => {
   blurTimer = setTimeout(() => {
     blurTimer = null;
     if (S.active && !document.hasFocus()) logInf('Pérdida de foco de la ventana');
-  }, 2000);
+  }, 1500);
 });
 window.addEventListener('focus', () => { clearTimeout(blurTimer); blurTimer = null; });
 document.addEventListener('fullscreenchange', () => {
