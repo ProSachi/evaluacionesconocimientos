@@ -1,22 +1,20 @@
 'use strict';
 
-/* =====================================================================
-   CONFIGURACIÓN
-   ===================================================================== */
-// Las credenciales de Supabase se leen en tiempo de ejecución desde /api/config (variables de entorno de Vercel).
-
-// Cursos predefinidos (editable)
 const CURSOS = [
-  'Desarrollo Web Front-End',
-  'Back-End Java',
+  'Back-End Java 1',
+  'Back-End Java 2',
   'Bases de Datos SQL',
-  'Python y Visualización',
-  'Lógica de Programación'
+  'Desarrollo Web Front-End I',
+  'Desarrollo Web Front-End II',
+  'Introducción a la Programación',
+  'Lógica de Programación',
+  'Nuevas Tecnologías',
+
 ];
 
 let sb = null;
 
-// Respaldo SOLO para desarrollo local: carga config.local.js (ignorado por Git) si existe.
+// Respaldo SOLO para desarrollo local.
 function loadLocalConfig() {
   const h = location.hostname;
   const esLocal = location.protocol === 'file:' || h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
@@ -39,7 +37,7 @@ async function initSupabase() {
     cfg = await res.json();
   } catch (err) {
     motivo = err.message;
-    cfg = await loadLocalConfig();   // solo se usa en localhost / file://
+    cfg = await loadLocalConfig();   
   }
   if (cfg && cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && !/TU_SUPABASE/.test(cfg.SUPABASE_URL + cfg.SUPABASE_ANON_KEY)) {
     sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
@@ -319,7 +317,7 @@ $('btn-csv').onclick = () => {
   const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const lines = [head.map(cell).join(',')].concat(reportRows.map((r) =>
     [r.curso, r.evaluacion_codigo, r.estudiante_documento, r.estudiante_nombre, r.intentos_realizados,
-      fmtNota(r.ultimo_puntaje), fmtNota(r.mejor_puntaje), r.infracciones_count || 0].map(cell).join(',')));
+    fmtNota(r.ultimo_puntaje), fmtNota(r.mejor_puntaje), r.infracciones_count || 0].map(cell).join(',')));
   const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -452,7 +450,7 @@ document.addEventListener('fullscreenchange', () => {
   if (!document.fullscreenElement) { logInf('Salida de pantalla completa'); $('modal-fs').hidden = false; }
   else $('modal-fs').hidden = true;
 });
-$('btn-refs').onclick = () => document.documentElement.requestFullscreen().catch(() => {});
+$('btn-refs').onclick = () => document.documentElement.requestFullscreen().catch(() => { });
 document.addEventListener('contextmenu', (e) => { if (S.active) { e.preventDefault(); logInf('Intento de clic derecho'); } });
 document.addEventListener('keydown', (e) => {
   if (!S.active) return;
@@ -485,7 +483,7 @@ async function startExam() {
   try {
     S.questions = await prepareQuestions(S.ev);
   } catch (err) {
-    document.exitFullscreen().catch(() => {});
+    document.exitFullscreen().catch(() => { });
     btn.disabled = false;
     alert('Error preparando la evaluación: ' + err.message);
     return;
