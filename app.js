@@ -7,14 +7,11 @@
 
 // Cursos predefinidos (editable)
 const CURSOS = [
+  'Desarrollo Web Front-End',
+  'Back-End Java',
   'Bases de Datos SQL',
-  'Desarrollo Web Front-End 1',
-  'Desarrollo Web Front-End 2',
-  'Desarrollo Back-End 1',
-  'Desarrollo Back-End 2',
-  'Introducción a la Programación',
-  'Lógica de Programación',
-  'Nuevas Tecnologías'
+  'Python y Visualización',
+  'Lógica de Programación'
 ];
 
 let sb = null;
@@ -279,22 +276,35 @@ $('btn-refresh').onclick = initReport;
 
 async function loadReport() {
   const tb = $('tb-results');
-  tb.innerHTML = '<tr><td colspan="8">Cargando…</td></tr>';
+  tb.innerHTML = '<tr><td colspan="9">Cargando…</td></tr>';
   let q = sb.from('resultados').select('*').order('updated_at', { ascending: false });
   if ($('r-curso').value) q = q.eq('curso', $('r-curso').value);
   if ($('r-codigo').value) q = q.eq('evaluacion_codigo', $('r-codigo').value);
   const { data, error } = await q;
-  if (error) { tb.innerHTML = `<tr><td colspan="8">${esc(error.message)}</td></tr>`; return; }
+  if (error) { tb.innerHTML = `<tr><td colspan="9">${esc(error.message)}</td></tr>`; return; }
   reportRows = data;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="8">No hay resultados con estos filtros.</td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="9">No hay resultados con estos filtros.</td></tr>'; return; }
   tb.innerHTML = data.map((r, i) => `
     <tr>
       <td>${esc(r.curso)}</td><td>${esc(r.evaluacion_codigo)}</td><td>${esc(r.estudiante_documento)}</td><td>${esc(r.estudiante_nombre)}</td>
       <td>${r.intentos_realizados}</td><td>${fmtNota(r.ultimo_puntaje)}</td><td><strong>${fmtNota(r.mejor_puntaje)}</strong></td>
       <td>${r.infracciones_count || 0} <button class="btn sm" data-i="${i}" type="button">Ver detalle</button></td>
+      <td><button class="btn danger sm" data-delres="${i}" type="button">Eliminar</button></td>
     </tr>`).join('');
 }
-$('tb-results').onclick = (e) => {
+$('tb-results').onclick = async (e) => {
+  const del = e.target.closest('button[data-delres]');
+  if (del) {
+    const r = reportRows[Number(del.dataset.delres)];
+    if (!r) return;
+    if (!confirm(`¿Eliminar el resultado de ${r.estudiante_nombre} (documento ${r.estudiante_documento}) en ${r.evaluacion_codigo}?\n\nSe borrarán sus notas e infracciones y podrá presentar la evaluación desde cero. Esta acción no se puede deshacer.`)) return;
+    del.disabled = true;
+    const { data, error } = await sb.from('resultados').delete().eq('id', r.id).select();
+    if (error) { alert('No se pudo eliminar: ' + error.message); del.disabled = false; return; }
+    if (!data || !data.length) { alert('No se eliminó ninguna fila. Verifica que tu sesión docente esté activa y que exista la política de borrado para el rol authenticated.'); del.disabled = false; return; }
+    loadReport();
+    return;
+  }
   const b = e.target.closest('button[data-i]');
   if (!b) return;
   const r = reportRows[Number(b.dataset.i)];
@@ -434,7 +444,7 @@ window.addEventListener('blur', () => {
   blurTimer = setTimeout(() => {
     blurTimer = null;
     if (S.active && !document.hasFocus()) logInf('Pérdida de foco de la ventana');
-  }, 1500);
+  }, 2000);
 });
 window.addEventListener('focus', () => { clearTimeout(blurTimer); blurTimer = null; });
 document.addEventListener('fullscreenchange', () => {
